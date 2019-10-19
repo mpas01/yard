@@ -9,10 +9,10 @@ import rimraf        from 'rimraf';
 import sherpa        from 'style-sherpa';
 import yaml          from 'js-yaml';
 import fs            from 'fs';
-import webpackStream from 'webpack-stream';
-import webpack2      from 'webpack';
-import named         from 'vinyl-named';
-import uncss         from 'uncss';
+//import webpackStream from 'webpack-stream';
+//import webpack2      from 'webpack';
+//import named         from 'vinyl-named';
+//import uncss         from 'uncss';
 import autoprefixer  from 'autoprefixer';
 
 // Load all Gulp plugins into one variable
@@ -32,7 +32,7 @@ function loadConfig() {
 // Build the "dist" folder by running all of the below tasks
 // Sass must be run later so UnCSS can search for used classes in the others assets.
 gulp.task('build',
- gulp.series(clean, gulp.parallel(pages, javascript, images, copy), sass, styleGuide));
+  gulp.series(clean, gulp.parallel(pages, images, copy, copyjs), javascript, sass, styleGuide));
 
 // Build the site, run the server, and watch for file changes
 gulp.task('default',
@@ -49,6 +49,12 @@ function clean(done) {
 function copy() {
   return gulp.src(PATHS.assets)
     .pipe(gulp.dest(PATHS.dist + '/assets'));
+}
+
+// Copy updated js vendor files
+function copyjs() {
+  return gulp.src('src/assets/js/vendor/*.js')
+    .pipe(gulp.dest(PATHS.dist + '/js/vendor/'));
 }
 
 // Copy page templates into finished HTML files
@@ -73,7 +79,7 @@ function resetPages(done) {
 // Generate a style guide from the Markdown content and HTML template in styleguide/
 function styleGuide(done) {
   sherpa('src/styleguide/index.md', {
-    output: PATHS.dist + '/styleguide.html',
+    output: PATHS.dist + '/main/styleguide/index.html',
     template: 'src/styleguide/template.html'
   }, done);
 }
@@ -84,13 +90,12 @@ function sass() {
 
   const postCssPlugins = [
     // Autoprefixer
-    autoprefixer({ browsers: COMPATIBILITY }),
-
-    // UnCSS - Uncomment to remove unused styles in production
-    // PRODUCTION && uncss.postcssPlugin(UNCSS_OPTIONS),
+    autoprefixer(),
   ].filter(Boolean);
-
-  return gulp.src('src/assets/scss/app.scss')
+  var source = 'src/assets/scss/dev/app.scss';
+  if(PRODUCTION) {source = 'src/assets/scss/app.scss';}
+  $.sass.compiler = require('node-sass');
+  return gulp.src(source)
     .pipe($.sourcemaps.init())
     .pipe($.sass({
       includePaths: PATHS.sass
@@ -102,7 +107,7 @@ function sass() {
     .pipe(gulp.dest(PATHS.dist + '/assets/css'))
     .pipe(browser.reload({ stream: true }));
 }
-
+/*
 let webpackConfig = {
   mode: (PRODUCTION ? 'production' : 'development'),
   module: {
@@ -121,10 +126,11 @@ let webpackConfig = {
   },
   devtool: !PRODUCTION && 'source-map'
 }
+*/
 
 // Combine JavaScript into one file
 // In production, the file is minified
-function javascript() {
+/*function javascript() {
   return gulp.src(PATHS.entries)
     .pipe(named())
     .pipe($.sourcemaps.init())
@@ -135,16 +141,36 @@ function javascript() {
     .pipe($.if(!PRODUCTION, $.sourcemaps.write()))
     .pipe(gulp.dest(PATHS.dist + '/assets/js'));
 }
+*/
+
+// Generate  JS
+function javascript(done) {
+  //  gulp.src(PATHS.entries)
+  //    .pipe($.concat('foundation-what-input.min.js'))
+  //    .pipe(gulp.dest(PATHS.dist + '/js/vendor/'));
+  gulp.src(PATHS.javascript)
+    .pipe($.sourcemaps.init())
+    .pipe($.concat('app.js'))
+    .pipe($.if(PRODUCTION, $.uglify()
+      .on('error', e => { console.log(e); })
+    ))
+    .pipe($.if(!PRODUCTION, $.sourcemaps.write()))
+    .pipe(gulp.dest(PATHS.dist + '/js'));
+  done();
+}
 
 // Copy images to the "dist" folder
 // In production, the images are compressed
+
 function images() {
   return gulp.src('src/assets/img/**/*')
-    .pipe($.if(PRODUCTION, $.imagemin([
-      $.imagemin.jpegtran({ progressive: true }),
-    ])))
-    .pipe(gulp.dest(PATHS.dist + '/assets/img'));
+    .pipe(gulp.dest(PATHS.dist + '/images'));
+    //.pipe($.if(PRODUCTION, $.imagemin([
+    //  $.imagemin.jpegtran({ progressive: true }),
+    //])))
+    //.pipe(gulp.dest(PATHS.dist + '/assets/img'));
 }
+
 
 // Start a server with BrowserSync to preview the site in
 function server(done) {
@@ -161,13 +187,23 @@ function reload(done) {
 
 // Watch for changes to static assets, pages, Sass, and JavaScript
 function watch() {
-  gulp.watch(PATHS.assets, copy);
+  gulp.watch(PATHS.assets, gulp.series(copy, browser.reload));
   gulp.watch('src/pages/**/*.html').on('all', gulp.series(pages, browser.reload));
   gulp.watch('src/{layouts,partials}/**/*.html').on('all', gulp.series(resetPages, pages, browser.reload));
   gulp.watch('src/data/**/*.{js,json,yml}').on('all', gulp.series(resetPages, pages, browser.reload));
   gulp.watch('src/helpers/**/*.js').on('all', gulp.series(resetPages, pages, browser.reload));
-  gulp.watch('src/assets/scss/**/*.scss').on('all', sass);
+  gulp.watch('src/assets/scss/**/*.scss').on('change', gulp.series(sass, browser.reload));
   gulp.watch('src/assets/js/**/*.js').on('all', gulp.series(javascript, browser.reload));
+  gulp.watch('src/assets/js/vendor/*.js').on('all', gulp.series(copyjs, browser.reload));
   gulp.watch('src/assets/img/**/*').on('all', gulp.series(images, browser.reload));
-  gulp.watch('src/styleguide/**').on('all', gulp.series(styleGuide, browser.reload));
+  gulp.watch('src/styleguide/*').on('all', gulp.series(styleGuide, browser.reload));
+  //gulp.watch(PATHS.assets, copy);
+  // gulp.watch('src/pages/**/*.html').on('all', gulp.series(pages, browser.reload));
+  //gulp.watch('src/{layouts,partials}/**/*.html').on('all', gulp.series(resetPages, pages, browser.reload));
+  //gulp.watch('src/data/**/*.{js,json,yml}').on('all', gulp.series(resetPages, pages, browser.reload));
+  //gulp.watch('src/helpers/**/*.js').on('all', gulp.series(resetPages, pages, browser.reload));
+  //gulp.watch('src/assets/scss/**/*.scss').on('all', sass);
+  //gulp.watch('src/assets/js/**/*.js').on('all', gulp.series(javascript, browser.reload));
+  //gulp.watch('src/assets/img/**/*').on('all', gulp.series(images, browser.reload));
+  //gulp.watch('src/styleguide/**').on('all', gulp.series(styleGuide, browser.reload));
 }

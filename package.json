@@ -47,10 +47,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/zurb/foundation-zurb-template.git"
+    "url": "https://github.com/mpas01/yard.git"
   },
   "bugs": {
-    "url": "https://github.com/zurb/foundation-sites/issues",
+    "url": "https://github.com/mpas01/yard/issues",
     "email": "foundation@zurb.com"
   },
   "private": true

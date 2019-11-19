@@ -92,8 +92,8 @@ function sass() {
     // Autoprefixer
     autoprefixer(),
   ].filter(Boolean);
-  var source = 'src/assets/scss/dev/app.scss';
-  if(PRODUCTION) {source = 'src/assets/scss/app.scss';}
+  var source = 'src/assets/scss/dev/{app,home}*.scss';
+  if (PRODUCTION) { source = 'src/assets/scss/{app,home}*.scss';}
   $.sass.compiler = require('node-sass');
   return gulp.src(source)
     .pipe($.sourcemaps.init())
@@ -107,41 +107,6 @@ function sass() {
     .pipe(gulp.dest(PATHS.dist + '/assets/css'))
     .pipe(browser.reload({ stream: true }));
 }
-/*
-let webpackConfig = {
-  mode: (PRODUCTION ? 'production' : 'development'),
-  module: {
-    rules: [
-      {
-        test: /\.js$/,
-        use: {
-          loader: 'babel-loader',
-          options: {
-            presets: [ "@babel/preset-env" ],
-            compact: false
-          }
-        }
-      }
-    ]
-  },
-  devtool: !PRODUCTION && 'source-map'
-}
-*/
-
-// Combine JavaScript into one file
-// In production, the file is minified
-/*function javascript() {
-  return gulp.src(PATHS.entries)
-    .pipe(named())
-    .pipe($.sourcemaps.init())
-    .pipe(webpackStream(webpackConfig, webpack2))
-    .pipe($.if(PRODUCTION, $.uglify()
-      .on('error', e => { console.log(e); })
-    ))
-    .pipe($.if(!PRODUCTION, $.sourcemaps.write()))
-    .pipe(gulp.dest(PATHS.dist + '/assets/js'));
-}
-*/
 
 // Generate  JS
 function javascript(done) {
@@ -165,10 +130,6 @@ function javascript(done) {
 function images() {
   return gulp.src('src/assets/img/**/*')
     .pipe(gulp.dest(PATHS.dist + '/images'));
-    //.pipe($.if(PRODUCTION, $.imagemin([
-    //  $.imagemin.jpegtran({ progressive: true }),
-    //])))
-    //.pipe(gulp.dest(PATHS.dist + '/assets/img'));
 }
 
 
@@ -197,13 +158,4 @@ function watch() {
   gulp.watch('src/assets/js/vendor/*.js').on('all', gulp.series(copyjs, browser.reload));
   gulp.watch('src/assets/img/**/*').on('all', gulp.series(images, browser.reload));
   gulp.watch('src/styleguide/*').on('all', gulp.series(styleGuide, browser.reload));
-  //gulp.watch(PATHS.assets, copy);
-  // gulp.watch('src/pages/**/*.html').on('all', gulp.series(pages, browser.reload));
-  //gulp.watch('src/{layouts,partials}/**/*.html').on('all', gulp.series(resetPages, pages, browser.reload));
-  //gulp.watch('src/data/**/*.{js,json,yml}').on('all', gulp.series(resetPages, pages, browser.reload));
-  //gulp.watch('src/helpers/**/*.js').on('all', gulp.series(resetPages, pages, browser.reload));
-  //gulp.watch('src/assets/scss/**/*.scss').on('all', sass);
-  //gulp.watch('src/assets/js/**/*.js').on('all', gulp.series(javascript, browser.reload));
-  //gulp.watch('src/assets/img/**/*').on('all', gulp.series(images, browser.reload));
-  //gulp.watch('src/styleguide/**').on('all', gulp.series(styleGuide, browser.reload));
 }

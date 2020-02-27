@@ -3,15 +3,9 @@ title: Natours | Exciting tours for adventurous people
 layout: natours
 stylesheet: ../assets/css/app_natours.css
 ---
-<div class="grid-container">
-  <div class="grid-x grid-margin-x">
-    <div class="cell">
-      <div class="menu-centered">
-        {{> navigation}}
-      </div>
-    </div>    
-  </div>
-</div>
+
+{{> navigation}}
+      
 <div class="grid-container">
   <div class="grid-x grid-padding-x">
     <div class="cell small-12 medium-5">
@@ -21,43 +15,19 @@ stylesheet: ../assets/css/app_natours.css
       <p>Duis aute irure dolor in reprehenderit in voluptate velit esse</p>
     </div>
     <div class="cell small-12 medium-7">
-      <form>
-        <div class="grid-container">
-          <div class="grid-x grid-padding-x">
+      <form class="form">
+       
+          <div class="grid-x grid-padding-x grid-margin-x">
             <div class="cell">
-              <label for="name">Name
-                <input id="name" type="text" placeholder="name">
-              </label>
+              <div class="form-field">
+                <input class="form-input" type="text" name="firstname" id="firstname" required>
+                <label for="firstname" class="form-label">
+                  <span class="label-content">First Name</span>
+                </label>
+              </div>
             </div>
-          </div>
-          <div class="grid-x grid-padding-x">
-            <div class="medium-6 cell">
-              <label for="email">Email
-                <input id="email" type="text" placeholder="email">
-              </label>
-            </div>
-            <div class="medium-6 cell">
-              <label for="email">Confirm Email
-                <input id="email" type="text" placeholder="email">
-              </label>
-            </div>
-          </div>
-          <div class="grid-x grid-padding-x">
-            <div class="cell">
-              <label for="subject">Subject
-                <input type="text" name="" id="subject">
-              </label>              
-              <label for="comment">Comment
-                <textarea name="" id="comment" cols="30" rows="10"></textarea>
-              </label>
-            </div>
-          </div>
-          <div class="grid-x grid-padding-x">
-            <div class="cell">
-              <input class="button" type="submit" value="submit">
-            </div>
-          </div>
-        </div>
+          </div>       
+        
       </form>
     </div>         
   </div>
